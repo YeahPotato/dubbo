@@ -70,6 +70,7 @@ Container	服务运行容器
 首先，我们先把服务端的接口写好，因为其实 dubbo 的作用简单来说就是给消费端提供接口。
 
 接口定义
+```
 /**
  * xml方式服务提供者接口
  */
@@ -77,10 +78,11 @@ public interface ProviderService {
 
     String SayHello(String word);
 }
+```
 这个接口非常简单，只是包含一个 SayHello 的方法。
 
 接着，定义它的实现类。
-
+```
 /**
  * xml方式服务提供者实现类
  */
@@ -90,9 +92,11 @@ public class ProviderServiceImpl implements ProviderService{
         return word;
     }
 }
+```
 这样我们就把我们的接口写好了，那么我们应该怎么将我们的服务暴露出去呢？
 
 导入 maven 依赖
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -144,6 +148,7 @@ public class ProviderServiceImpl implements ProviderService{
 
     </dependencies>
 </project>
+```
 这里使用的 dubbo 的版本是 2.6.6 ，需要注意的是，如果你只导入 dubbo 的包的时候是会报错的，找不到 netty 和 curator 的依赖，所以，在这里我们需要把这两个的依赖加上，就不会报错了。
 
 另外，这里我们使用 zookeeper 作为注册中心。
@@ -154,7 +159,7 @@ public class ProviderServiceImpl implements ProviderService{
 首先，我们在我们项目的 resource 目录下创建 META-INF.spring 包，然后再创建 provider.xml 文件，名字可以任取哦，如下图。
 
 
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -186,6 +191,7 @@ public class ProviderServiceImpl implements ProviderService{
     <bean id="providerService" class="com.sihai.dubbo.provider.service.ProviderServiceImpl"/>
 
 </beans>
+```
 ① 上面的文件其实就是类似 spring 的配置文件，而且，dubbo 底层就是 spring。
 ② 节点：dubbo:application
 就是整个项目在分布式架构中的唯一名称，可以在 name 属性中配置，另外还可以配置 owner 字段，表示属于谁。
@@ -203,6 +209,7 @@ public class ProviderServiceImpl implements ProviderService{
 到这一步，关于服务端的配置就完成了，下面我们通过 main 方法将接口发布出去。
 
 发布接口
+```
 package com.sihai.dubbo.provider;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -229,6 +236,7 @@ public class App
         System.in.read(); // 按任意键退出
     }
 }
+```
 发布接口非常简单，因为 dubbo 底层就是依赖 spring 的，所以，我们只需要通过 ClassPathXmlApplicationContext 拿到我们刚刚配置好的 xml ，然后调用 context.start() 方法就启动了。
 
 看到下面的截图，就算是启动成功了，接口也就发布出去了。
@@ -237,8 +245,9 @@ public class App
 你以为到这里就结束了了，并不是的，我们拿到 dubbo 暴露出去的 url分析分析。
 
 dubbo 暴露的 url
-
+```
 dubbo://192.168.234.1:20880/com.sihai.dubbo.provider.service.ProviderService?anyhost=true&application=provider&bean.name=com.sihai.dubbo.provider.service.ProviderService&bind.ip=192.168.234.1&bind.port=20880&dubbo=2.0.2&generic=false&interface=com.sihai.dubbo.provider.service.ProviderService&methods=SayHello&owner=sihai&pid=8412&qos.accept.foreign.ip=false&qos.enable=true&qos.port=55555&side=provider&timestamp=1562077289380
+```
 分析
 
 ① 首先，在形式上我们发现，其实这么牛逼的 dubbo 也是用类似于 http 的协议发布自己的服务的，只是这里我们用的是 dubbo 协议。
@@ -255,7 +264,7 @@ dubbo://192.168.234.1:20880/com.sihai.dubbo.provider.service.ProviderService?any
 消费端环境配置
 首先，我们在消费端的 resource 下建立配置文件 consumer.xml。
 
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -280,6 +289,7 @@ dubbo://192.168.234.1:20880/com.sihai.dubbo.provider.service.ProviderService?any
                      interface="com.sihai.dubbo.provider.service.ProviderService"/>-->
 
 </beans>
+```
 分析
 
 ① 发现这里的 dubbo:application 和 dubbo:registry 是一致的。
@@ -287,7 +297,7 @@ dubbo://192.168.234.1:20880/com.sihai.dubbo.provider.service.ProviderService?any
 
 maven 依赖
 和服务端一样
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -343,7 +353,9 @@ maven 依赖
         </dependency>
     </dependencies>
 </project>
+```
 调用服务
+```
 package com.sihai.dubbo.consumer;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -371,6 +383,7 @@ public class App
 
     }
 }
+```
 这里和服务端的发布如出一辙。
 
 
@@ -384,7 +397,7 @@ public class App
 
 4.1 服务端
 在服务端中，我们只需要修改 provider.xml 即可。
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -416,6 +429,7 @@ public class App
     <bean id="providerService" class="com.sihai.dubbo.provider.service.ProviderServiceImpl"/>
 
 </beans>
+```
 重点关注这句话
 
 <dubbo:registry address="zookeeper://localhost:2181" />
@@ -428,7 +442,7 @@ public class App
 
 4.2 消费端
 跟服务端一样，在消费端，我们也只需要修改 consumer.xml 即可。
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -453,6 +467,7 @@ public class App
                      interface="com.sihai.dubbo.provider.service.ProviderService"/>
 
 </beans>
+```
 ① 注册中心配置跟服务端一样。
 
 <dubbo:registry address="zookeeper://localhost:2181"/>
@@ -483,7 +498,7 @@ public class App
 
 
 这里我们使用 api 的方式配置，所以，provider.xml 这个配置文件就暂时不需要了，我们只需要在上面的 AppApi 这个类中的 main 方法中用 api配置及启动即可。
-
+```
 package com.sihai.dubbo.provider;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -540,6 +555,7 @@ public class AppApi
         service.export();
     }
 }
+```
 分析
 
 看到上面的代码是不是云里雾里，不要慌，我们通过对照 xml 的方式分析一下。
@@ -573,7 +589,7 @@ http://dubbo.apache.org/zh-cn...
 同样，我们不需要 consumer.xml 配置文件了，只需要在 main 方法中启动即可。
 
 
-
+```
 package com.sihai.dubbo.consumer;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -612,6 +628,7 @@ public class AppApi {
         providerService.SayHello("hello dubbo! I am sihai!");
     }
 }
+```
 这部分的 API 配置的方式就到这了，注意：官方推荐 xml 的配置方法。
 
 5.2 注解配置方式
@@ -623,7 +640,7 @@ public class AppApi {
 
 
 第一步：定义接口及实现类，在上面的截图中的 annotation 包下
-
+```
 package com.sihai.dubbo.provider.service.annotation;
 
 /**
@@ -646,12 +663,13 @@ public class ProviderServiceImplAnnotation implements ProviderServiceAnnotation{
         return word;
     }
 }
+```
 @Service
 
 @Service 用来配置 Dubbo 的服务提供方。
 
 第二步：组装服务提供方。通过 Spring 中 Java Config 的技术（@Configuration）和 annotation 扫描（@EnableDubbo）来发现、组装、并向外提供 Dubbo 的服务。
-
+```
 package com.sihai.dubbo.provider.configuration;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -700,6 +718,7 @@ public class DubboConfiguration {
         return protocolConfig;
     }
 }
+```
 分析
 
 通过 @EnableDubbo 指定在com.sihai.dubbo.provider.service.annotation 下扫描所有标注有 @Service 的类
@@ -713,7 +732,7 @@ ProtocolConfig：协议配置
 
 
 第三步：启动服务
-
+```
 package com.sihai.dubbo.provider;
 
 import com.alibaba.dubbo.config.spring.context.annotation.DubboComponentScan;
@@ -734,6 +753,7 @@ public class AppAnnotation {
         System.in.read(); 
     }
 }
+```
 发现输出下面信息就表示 success 了。
 
 
@@ -742,7 +762,7 @@ public class AppAnnotation {
 图片.png
 
 第一步：引用服务
-
+```
 package com.sihai.dubbo.consumer.Annotation;
 
 import com.alibaba.dubbo.config.annotation.Reference;
@@ -762,6 +782,7 @@ public class ConsumerAnnotationService {
         return providerServiceAnnotation.SayHelloAnnotation(name);
     }
 }
+```
 在 ConsumerAnnotationService 类中，通过 @Reference 引用服务端提供的类，然后通过方法调用这个类的方式，给消费端提供接口。
 注意：如果这里找不到 ProviderServiceAnnotation 类，请在服务端先把服务端工程用 Maven intall 一下，然后将服务端的依赖放到消费端的 pom 中。如下：
 
@@ -772,7 +793,7 @@ public class ConsumerAnnotationService {
         </dependency>
 第二步：组装服务消费者
 这一步和服务端是类似的，这里就不在重复了。
-
+```
 package com.sihai.dubbo.consumer.configuration;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
@@ -821,10 +842,11 @@ public class ConsumerConfiguration {
         return registryConfig;
     }
 }
+```
 第三步：发起远程调用
 
 在 main 方法中通过启动一个 Spring Context，从其中查找到组装好的 Dubbo 的服务消费者，并发起一次远程调用。
-
+```
 package com.sihai.dubbo.consumer;
 
 import com.sihai.dubbo.consumer.Annotation.ConsumerAnnotationService;
@@ -851,6 +873,7 @@ public class AppAnnotation
 
     }
 }
+```
 结果
 
 
@@ -1048,12 +1071,5 @@ dubbo 也可以将日志信息记录或者保存到文件中的。
 
 <dubbo:protocol accesslog="http://localhost/log.txt" name="dubbo" port="20880"/>
     <dubbo:protocol accesslog="http://localhost/log2.txt" name="rmi" port="1099" />
-七 总结
-这篇文章就到这里了，主要讲了一下几个内容
-1、为什么需要dubbo
-2、dubbo架构简析
-3、dubbo入门
-4、zookeeper注册中心加入dubbo
-5、dubbo多种配置方式（xml、api、注解）
-6、常用场景介绍
+
 
